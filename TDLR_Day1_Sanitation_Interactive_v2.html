@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TDLR Cosmetology – Day 1 Interactive Quiz (Sanitation) — v2</title>
+<style>
+  :root{--pad:16px;--radius:12px;--muted:#666}
+  *{box-sizing:border-box}
+  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial;line-height:1.35;color:#111;background:#fff}
+  header{position:sticky;top:0;z-index:5;background:#fff;border-bottom:1px solid #eee;padding:12px 16px}
+  header h1{font-size:18px;margin:0}
+  header small{color:var(--muted)}
+  main{padding:16px;max-width:900px;margin:0 auto}
+  .pill{display:inline-block;font-size:12px;padding:4px 8px;border-radius:999px;background:#efefef;color:#333;margin-right:6px}
+  .card{background:#fafafa;border:1px solid #eee;border-radius:12px;padding:16px;margin:12px 0}
+  .muted{color:var(--muted)}
+  .btn{background:#111;color:#fff;border:none;padding:10px 14px;border-radius:10px;font-size:14px;cursor:pointer}
+  .btn.ghost{background:#f2f2f2;color:#111}
+  .q{background:#fff;border:1px solid #eee;border-radius:12px;padding:12px;margin:10px 0}
+  .q h4{margin:0 0 8px 0;font-size:16px}
+  .choices{display:grid;gap:8px}
+  button.choice{width:100%;text-align:left;background:#f7f7f7;border:1px solid #e6e6e6;padding:12px;border-radius:10px;font-size:15px;cursor:pointer}
+  button.choice.correct.selected{border-color:#2e7d32}
+  button.choice.incorrect.selected{border-color:#b00020}
+  .explain{display:none;margin-top:10px;background:#fcfcfc;border:1px dashed #e5e5e5;padding:10px;border-radius:10px;color:#333}
+  .explain.show{display:block}
+  .score{font-weight:600;margin:6px 0 0 0}
+  details{background:#fff;border:1px solid #eee;border-radius:10px;padding:10px 12px}
+  summary{font-weight:600;cursor:pointer}
+</style>
+</head>
+<body>
+<header>
+  <h1>Day 1 – Sanitation, Disinfection & Safety <small class="muted">Interactive Quiz v2</small></h1>
+</header>
+<main>
+  <section class="card">
+    <span class="pill">Mobile Interactive</span>
+    <span class="pill">20 Questions</span>
+    <span class="pill">Tap to Reveal</span>
+    <p class="muted" style="margin-top:8px">Answer each item, then read the explanation. Use Shuffle for a fresh order.</p>
+    <button id="shuffleBtn" class="btn">🔀 Shuffle Questions</button>
+    <button id="resetBtn" class="btn ghost" style="margin-left:8px">↺ Reset</button>
+    <div class="score" id="scoreBox">Score: 0 / 20</div>
+  </section>
+
+  <section class="card">
+    <details open>
+      <summary>Key Reminders (Texas Focus)</summary>
+      <ul>
+        <li>Clean with <b>soap & warm water</b> before disinfection; change disinfectant <b>daily</b> or when soiled.</li>
+        <li>Use <b>EPA-registered, hospital-grade</b> disinfectants on nonporous surfaces per label.</li>
+        <li><b>No MMA monomer</b> for artificial nails. Store clean tools in a <b>closed, clean container</b>.</li>
+        <li>Exposure incident: stop service → wash/antiseptic → bandage → disinfect tools & station.</li>
+      </ul>
+    </details>
+  </section>
+
+  <section class="card">
+    <h3 style="margin:0 0 10px 0">Practice Questions</h3>
+    <div id="questions"></div>
+  </section>
+
+  <section class="card">
+    <h3 style="margin:0 0 10px 0">Rapid Review (5)</h3>
+    <div id="rapid"></div>
+  </section>
+</main>
+
+<script>
+const BANK = [
+  {q:"What is the lowest level of decontamination used in salons?",choices:["Sterilization","Disinfection","Sanitation","Autoclaving"],answer:2,exp:"Sanitation removes debris and reduces microbes; disinfection is higher; sterilization is highest."},
+  {q:"Before immersing implements in disinfectant, you must first:",choices:["Dry with a clean towel","Wipe with alcohol","Wash with soap and warm water","Place in a UV cabinet"],answer:2,exp:"Clean first so the disinfectant can work effectively, per label and TDLR rules."},
+  {q:"Which disinfectant type is required on nonporous surfaces?",choices:["Household cleaner","EPA-registered, hospital-grade disinfectant","Essential oil spray","Hand sanitizer"],answer:1,exp:"EPA-registered, hospital-grade disinfectants are required for salon use."},
+  {q:"When should liquid disinfectant be changed?",choices:["Weekly","Every 3 days","Only when it smells bad","Daily or sooner if contaminated"],answer:3,exp:"Replace it daily or when visibly soiled to maintain effectiveness."},
+  {q:"Which bacteria are round-shaped?",choices:["Bacilli","Spirilla","Cocci","Flagella"],answer:2,exp:"Cocci = round; bacilli = rod; spirilla = spiral."},
+  {q:"Universal precautions require you to:",choices:["Treat all bodily fluids as infectious","Wear goggles for every haircut","Sterilize all combs after each use","Use only disposable tools"],answer:0,exp:"Assume all blood/bodily fluids may be infectious and use PPE appropriately."},
+  {q:"Which item is single-use and must be discarded after service?",choices:["Metal pusher","Wooden orangewood stick","Shears","Comedone extractor"],answer:1,exp:"Porous wooden sticks are single-use; metal tools can be disinfected and reused."},
+  {q:"First step after a blood exposure incident:",choices:["Apply a bandage","Stop the service","Disinfect the workstation","Put on a cape"],answer:1,exp:"Stop the service immediately, then follow exposure control steps."},
+  {q:"What agency registers disinfectants used in salons?",choices:["OSHA","EPA","FDA","TDLR"],answer:1,exp:"EPA registers disinfectants; TDLR enforces state rules for their use."},
+  {q:"Main purpose of the SDS?",choices:["Track client services","Explain chemical hazards and safe use/storage","List salon prices","Provide haircut diagrams"],answer:1,exp:"SDS provides hazard, PPE, first aid, and handling info for products."},
+  {q:"After disinfection, implements should be stored in a:",choices:["Closed, clean container","Open jar on the station","Towel pocket","Client’s cape pocket"],answer:0,exp:"Closed, clean storage prevents recontamination."},
+  {q:"NOT appropriate for disinfecting electrical tools?",choices:["EPA spray per label","Disinfectant wipe per label","Immersing tool in liquid disinfectant","Unplugging before cleaning"],answer:2,exp:"Never immerse electrical tools; use sprays/wipes as directed."},
+  {q:"Which organism requires a living host to replicate?",choices:["Bacteria","Fungus","Virus","Protozoa"],answer:2,exp:"Viruses need host cells; bacteria/fungi can live on surfaces."},
+  {q:"TDLR prohibits which nail product?",choices:["MMA (methyl methacrylate) monomer","Non-acetone remover","Nitrile gloves","Buffered files"],answer:0,exp:"MMA monomer is unsafe and not permitted."},
+  {q:"Minimum recommended handwashing duration:",choices:["5 seconds","10 seconds","20 seconds","60 seconds"],answer:2,exp:"Wash for at least 20 seconds to effectively reduce microbes."},
+  {q:"Correct order for nonporous implement decontamination:",choices:["Rinse → Disinfect → Clean","Clean → Disinfect → Rinse & Dry","Disinfect → Clean → Rinse","UV → Clean → Disinfect"],answer:1,exp:"Clean first, then disinfect per label, then rinse/dry if label requires."},
+  {q:"Soiled linens and towels must be:",choices:["Stored under the sink","Placed with clean linens if dry","In a covered container labeled 'soiled'","Thrown away immediately"],answer:2,exp:"Use a covered, labeled container to avoid cross-contamination."},
+  {q:"Porosity & disinfection — true statement:",choices:["Porous items can be effectively disinfected","Nonporous items can be disinfected; porous items are discarded if contaminated","Disinfection works the same on all materials","Porous items can be sterilized with UV only"],answer:1,exp:"Use disinfectants on nonporous items; contaminated porous single-use items are discarded."},
+  {q:"Who enforces salon sanitation rules in Texas?",choices:["OSHA","EPA","TDLR","CDC"],answer:2,exp:"TDLR enforces cosmetology sanitation rules in Texas."},
+  {q:"After using a multi-use metal implement, the BEST next step is to:",choices:["Wipe on a towel and reuse","Place in your drawer","Clean with soap & water, then disinfect per label","Spray perfume on it"],answer:2,exp:"Always clean first, then disinfect per label before next use."}
+];
+
+const RAPID = [
+  {q:"Lowest decontamination level?",a:"Sanitation"},
+  {q:"Agency registering disinfectants?",a:"EPA"},
+  {q:"Soap + warm water step called?",a:"Cleaning (part of sanitation)"},
+  {q:"Treat all blood as infectious = ?",a:"Universal precautions"},
+  {q:"Where to store disinfected tools?",a:"Closed, clean container"}
+];
+
+function shuffle(a){const b=[...a];for(let i=b.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[b[i],b[j]]=[b[j],b[i]]}return b}
+
+let score=0;
+const scoreBox=document.getElementById('scoreBox');
+
+function renderQuestions(){
+  score=0; scoreBox.textContent=`Score: ${score} / 20`;
+  const cont=document.getElementById('questions'); cont.innerHTML="";
+  const items=shuffle(BANK);
+  items.forEach((item,idx)=>{
+    const wrap=document.createElement('div'); wrap.className='q';
+    wrap.innerHTML=`<h4>${idx+1}. ${item.q}</h4>`;
+    const grid=document.createElement('div'); grid.className='choices';
+    const exp=document.createElement('div'); exp.className='explain'; exp.innerHTML=`<strong>Answer: ${String.fromCharCode(97+item.answer)}) ${item.choices[item.answer]}</strong><br>${item.exp}`;
+    item.choices.forEach((c,i)=>{
+      const b=document.createElement('button'); b.className='choice'; b.textContent=`${String.fromCharCode(97+i)}) ${c}`;
+      b.addEventListener('click',()=>{
+        if(b.classList.contains('selected'))return;
+        const correct=i===item.answer;
+        b.classList.add('selected',correct?'correct':'incorrect');
+        if(correct){score++; scoreBox.textContent=`Score: ${score} / 20`;}
+        exp.classList.add('show');
+      });
+      grid.appendChild(b);
+    });
+    wrap.appendChild(grid); wrap.appendChild(exp); cont.appendChild(wrap);
+  });
+}
+
+function renderRapid(){
+  const cont=document.getElementById('rapid'); cont.innerHTML="";
+  RAPID.forEach((item,idx)=>{
+    const w=document.createElement('div'); w.className='q';
+    w.innerHTML=`<h4>R${idx+1}. ${item.q}</h4>`;
+    const btn=document.createElement('button'); btn.className='btn ghost'; btn.textContent='Show Answer';
+    const ans=document.createElement('div'); ans.className='explain'; ans.innerHTML=`<strong>${item.a}</strong>`;
+    btn.addEventListener('click',()=>ans.classList.toggle('show'));
+    w.appendChild(btn); w.appendChild(ans); cont.appendChild(w);
+  });
+}
+
+document.getElementById('shuffleBtn').addEventListener('click',renderQuestions);
+document.getElementById('resetBtn').addEventListener('click',renderQuestions);
+renderQuestions(); renderRapid();
+</script>
+</body>
+</html>
